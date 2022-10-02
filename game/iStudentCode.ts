@@ -4,9 +4,22 @@
  */
 
 import CellItem from "./cellItem";
+import Collision from "./collistion";
+import Coordinate from "./coordinate";
+import Direction from "./direction";
 
-export default interface IStudentCode {
-    isValidCell(gridSize: number, x: number, y: number): boolean;
+export interface ISnake {
+    getSnakeHead(): CellItem;
+    getSnakeBodyParts(): CellItem[];
+    getAllSnakeParts(): CellItem[];
+    update(direction: Direction): void;
+    detectCollision(gridSize: number, appleLocation: Coordinate): Collision | null;
+    consumeApple(): void;
+}
 
-    onUpdate(direction: string, cellItems: CellItem[]): void;
+export interface IBoardHelper {
+    getGridSize(): number;
+    getBoardSpeedMs(): number;
+    getDirection(keyBoardEvent: KeyboardEvent): Direction | null;
+    createApple(freeCells: Coordinate[]): CellItem;
 }

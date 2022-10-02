@@ -5,126 +5,143 @@
 
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import styles from '../styles/Board.module.css';
+import { Cell, CellComponent } from "./cell";
 import CellItem from "./cellItem";
-import StudentCode from "./studentCode";
+import Collision from "./collistion";
+import Coordinate from "./coordinate";
+import Direction from "./direction";
+import { BoardHelper, JoshBoardHelper, JoshSnake, Snake } from "./studentCode";
 
-const GridSize = 15;
+const boardHelper = new JoshBoardHelper(); //new BoardHelper();
+const GridSize = boardHelper.getGridSize();
 
-const gridIterator = (callback: (x: number, y: number) => void) => {
-    for(let y = 0; y < GridSize; y++) {
-        for(let x = 0; x < GridSize; x++) {
-            callback(x, y);
+const gridIterator = (callback: (coordinate: Coordinate) => void) => {
+    for (let y = GridSize - 1; y >= 0; y--) {
+        for (let x = 0; x < GridSize; x++) {
+            callback(new Coordinate(x, y));
         }
     }
 }
 
 class BoardManager {
-    private studentCode = new StudentCode();
+    private snake = new JoshSnake(); //new Snake();
     private cells = new Map<string, Cell>();
-    public items: CellItem[] = [
-        { x: 0, y: 3, character: 'x', type: 'test' }
-    ];
+    private direction = Direction.RIGHT;
+    private apple: CellItem;
+
     constructor() {
-        gridIterator((x, y) => this.cells.set(`${x}:${y}`, new Cell(x, y)));
+        gridIterator(coordinate => this.cells.set(coordinate.getCoordinateKey(), new Cell(coordinate)));
+        const snakeStart = this.snake.getSnakeHead();
+        this.updateCells(false);
+        this.apple = this.createApple(); //Just getting around initialization error
     }
 
-    getCell(x: number, y: number) {
-        if(!this.studentCode.isValidCell(GridSize, x, y)) {
-            throw new Error('Index outside grid');
-        }
+    createApple() {
+        const freeCells = Array.from(this.cells.values()).filter(cell => !cell.hasItem()).map(cell => cell.coodinate.clone());
+        this.apple = boardHelper.createApple(freeCells);
+        this.getCell(this.apple.coordinate).setItem(this.apple);
+        return this.apple;
+    }
 
-        const cell = this.cells.get(`${x}:${y}`);
-        if(!cell) {
-            throw new Error('FATAL ERROR: Index outside grid');
+    getCell(coordinate: Coordinate) {
+        const cell = this.cells.get(coordinate.getCoordinateKey());
+        if (!cell) {
+            console.error('FATAL ERROR: Index outside grid');
         }
-        return cell;
+        return cell ?? new Cell(coordinate);
     }
 
     update() {
         this.cells.forEach(cell => cell.clearItem());
-        this.studentCode.onUpdate('unimplemented', this.items);
-        this.items.forEach(item => {
-            const cell = this.getCell(item.x, item.y);
+        this.snake.update(this.direction);
+        const collision = this.snake.detectCollision(GridSize, this.apple.coordinate);
+        switch (collision) {
+            case Collision.APPLE:
+                this.snake.consumeApple();
+                this.updateCells(false);
+                this.createApple();
+                break;
+            case Collision.WALL:
+                return 'Your snake slithered into a wall!';
+            case Collision.SNAKE:
+                return 'Your snaked slithered into itself';
+        }
+        this.updateCells();
+        return null;
+    }
+
+    updateCells(includeApple = true) {
+        this.snake.getAllSnakeParts().concat(includeApple ? [this.apple] : []).forEach(item => {
+            const cell = this.getCell(item.coordinate);
             cell.setItem(item);
-            console.log(item, cell);
             cell.onChange();
         });
     }
-}
 
-class Cell {
-    constructor(public x: number, public y: number, private item?: CellItem) {}
-
-    clearItem() {
-        this.item = undefined;
-        this.onChange();
+    handleKeyBoardEvent(event: KeyboardEvent) {
+        this.direction = boardHelper.getDirection(event) ?? this.direction;
     }
-
-    setItem(item: CellItem) {
-        this.item = item;
-        this.onChange();
-    }
-
-    getItemCharacter() {
-        return this.item?.character ?? '';
-    }
-
-    onChange = () => {};
-}
-
-type CellProps = {
-    cell: Cell;
-}
-
-const CellComponent: FunctionComponent<CellProps> = (props) =>  {
-    const [character, setCharacter] = useState(props.cell.getItemCharacter());
-
-    props.cell.onChange = () => {
-        setCharacter(props.cell.getItemCharacter());
-    }
-
-    const onClick = () => {
-        console.log(props.cell);
-    };
-
-    return <div className={styles.square} onClick={onClick}>{character}</div>
 }
 
 const Board: FunctionComponent = () => {
-    const [gridSize, setGridSize] = useState(15);
+    const [gameStarted, setGameStarted] = useState(false);
+    const [gameOverText, setGameOverText] = useState('');
+    const [gridSize, setGridSize] = useState(GridSize);
     const boardRef = useRef<HTMLHeadingElement>(null);
-    const boardManager = new BoardManager();
-    boardManager.update();
+    const [boardManager, setBoardManager] = useState<BoardManager>(new BoardManager());
 
     useEffect(() => {
-        console.log(boardRef);
+        window.document.onkeydown = event => {
+            boardManager?.handleKeyBoardEvent(event);
+        }
+        setGridSize(GridSize);
+    }, [boardManager])
+
+    useEffect(() => {
         boardRef?.current?.style?.setProperty("--grid-size", gridSize.toString());
-    }, [gridSize]);
+    });
 
     useEffect(() => {
         const interval = setInterval(() => {
-            boardManager.update();
-        }, 1000);
+            if(!gameStarted) {
+                return;
+            }
+            const gameOverMessage = boardManager.update();
+            if(gameOverMessage) {
+                setGameOverText(gameOverMessage);
+                setGameStarted(false);
+                setBoardManager(new BoardManager());
+            }
+        }, boardHelper.getBoardSpeedMs());
         return () => clearInterval(interval);
     })
 
     const createCells = () => {
         let cells = [] as JSX.Element[];
-        gridIterator((x, y) => {
-            const cell = boardManager.getCell(x, y);
-            cells.push(<CellComponent cell={cell} key={`${x}-${y}`}></CellComponent>)
+        gridIterator(coordinate => {
+            const cell = boardManager.getCell(coordinate);
+            cells.push(<CellComponent cell={cell} key={coordinate.getCoordinateKey()}></CellComponent>)
         });
-        console.log(cells);
         return cells;
     };
 
-    const testItem = () => {
-        boardManager.items[0].x++;
+    const startGame = () => {
+        setBoardManager(new BoardManager());
+        setGameStarted(true);
+        boardManager?.update();
+    }
+
+    if (!gameStarted) {
+        return (
+            <div className={styles.wrapper}>
+                {gameOverText ? (<h1>{gameOverText}</h1>) : <></>}
+                <button onClick={startGame}>New Game</button>
+            </div>
+        )
     }
 
     return (
-        <div className="App">
-            <button onClick={testItem}>Test</button>
+        <div className={styles.wrapper}>
             <div ref={boardRef} className={styles.board}>
                 {createCells()}
             </div>

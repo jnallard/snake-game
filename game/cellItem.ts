@@ -3,9 +3,13 @@
  * (They may improve it after the exercise is done)
  */
 
-export default interface CellItem {
-    x: number;
-    y: number;
-    type: string;
-    character: string;
+import Coordinate from "./coordinate";
+
+export default class CellItem {
+    constructor(
+        public coordinate: Coordinate,
+        public backgroundColor: string,
+    ) {
+
+    }
 }
