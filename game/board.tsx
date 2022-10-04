@@ -10,7 +10,8 @@ import CellItem from "./cellItem";
 import Collision from "./collistion";
 import Coordinate from "./coordinate";
 import Direction from "./direction";
-import { BoardHelper, JoshBoardHelper, JoshSnake, Snake } from "./studentCode";
+import { JoshBoardHelper, JoshSnake } from "./joshCode";
+import { BoardHelper, Snake } from "./studentCode";
 
 const boardHelper = new JoshBoardHelper(); //new BoardHelper();
 const GridSize = boardHelper.getGridSize();
@@ -31,7 +32,6 @@ class BoardManager {
 
     constructor() {
         gridIterator(coordinate => this.cells.set(coordinate.getCoordinateKey(), new Cell(coordinate)));
-        const snakeStart = this.snake.getSnakeHead();
         this.updateCells(false);
         this.apple = this.createApple(); //Just getting around initialization error
     }
@@ -112,7 +112,7 @@ const Board: FunctionComponent = () => {
                 setGameStarted(false);
                 setBoardManager(new BoardManager());
             }
-        }, boardHelper.getBoardSpeedMs());
+        }, boardHelper.getRefreshRateMs());
         return () => clearInterval(interval);
     })
 

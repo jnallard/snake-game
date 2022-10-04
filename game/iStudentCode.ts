@@ -8,6 +8,13 @@ import Collision from "./collistion";
 import Coordinate from "./coordinate";
 import Direction from "./direction";
 
+export interface IBoardHelper {
+    getGridSize(): number;
+    getRefreshRateMs(): number;
+    getDirection(keyBoardEvent: KeyboardEvent): Direction | null;
+    createApple(freeCells: Coordinate[]): CellItem;
+}
+
 export interface ISnake {
     getSnakeHead(): CellItem;
     getSnakeBodyParts(): CellItem[];
@@ -15,11 +22,4 @@ export interface ISnake {
     update(direction: Direction): void;
     detectCollision(gridSize: number, appleLocation: Coordinate): Collision | null;
     consumeApple(): void;
-}
-
-export interface IBoardHelper {
-    getGridSize(): number;
-    getBoardSpeedMs(): number;
-    getDirection(keyBoardEvent: KeyboardEvent): Direction | null;
-    createApple(freeCells: Coordinate[]): CellItem;
 }
