@@ -8,8 +8,8 @@ Track your progress with the project by updating the checkmarks down below
 ## Set up
 - [x] Read this readme
 - [ ] Fork this project into your own Github project
-- [ ] Confirm that your website is auto-deployed to [https://{username}.github.io/snake-game/game](https://{username}.github.io/snake-game/game) 
-  - [ ] Make sure to update the `{username}` texts on the line above to your github username
+- [ ] Confirm that your website is auto-deployed to [GitHub Pages](https://{username}.github.io/Snake-Game/game) 
+  - [ ] Make sure to update the `{username}` text on the line above to your github username
 - [ ] Make sure the following are installed (Two of these will already be installed on computer sets up for robotics)
   - [ ] Git: [Install](https://git-scm.com/downloads)
   - [ ] VS Code: [Install](https://code.visualstudio.com/download)
@@ -22,10 +22,10 @@ Track your progress with the project by updating the checkmarks down below
 
 **All these changes can be made in `./game/studentCode.ts`**
 
-- [ ] getGridSize - they can change it from 5 to 10, to see how it changes
+- [ ] getGridSize - you can change it from 10 to something, to see how it changes, but return to 10 after
 - [ ] getBoardSpeedMs - we can explain it, but we will need to go back to it after the snake is moving
 - [ ] createApple - change from going to the first cell to a random cell
-- [ ] getDirection - explain how switch statements work and enums (for the Direction enum)
+- [ ] getDirection - we can explain how switch statements work and enums (for the Direction enum)
 
 ## Snake
 
