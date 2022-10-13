@@ -139,16 +139,16 @@ export class JoshSnake extends Snake {
                 return './game-assets/body_vertical.png';
             case 'left-up':
             case 'up-left':
-                return './game-assets/body_topLeft.png';
+                return './game-assets/body_topleft.png';
             case 'up-right':
             case 'right-up':
-                return './game-assets/body_topRight.png';
+                return './game-assets/body_topright.png';
             case 'down-left':
             case 'left-down':
-                return './game-assets/body_bottomLeft.png';
+                return './game-assets/body_bottomleft.png';
             case 'down-right':
             case 'right-down':
-                return './game-assets/body_bottomRight.png';
+                return './game-assets/body_bottomright.png';
         }
         return 'blue';
     }
